@@ -1,13 +1,32 @@
 <?php
-// Mendapatkan nilai UIDresult yang dikirimkan melalui metode POST
-$UIDresult = $_POST["UIDresult"];
 
-// Menulis kode PHP ke dalam file UIDContainer.php
-$Write = "<?php \$UIDresult = '" . $UIDresult . "'; ?>";
+	// Menangkap data yang dikirim HTTP
+	$catch_data = $_GET['UIDresult'];
 
-// Menulis kode PHP ke dalam file UIDContainer.php
-file_put_contents('UIDContainer.php', $Write);
 
-// Memberikan pesan konfirmasi
-echo "UID has been saved to UIDContainer.php";
+	// Menulis data sementara ke file json
+	$file = fopen('storage.json', 'w');
+	fwrite($file, json_encode(array('UIDresult'=>$catch_data)));
+	fclose($file);
+
+
+	// Extract file json
+	$file = fopen('storage.json', 'r');
+	
+	$json;
+	
+	while(!feof($file)) {
+
+		$json = json_decode(fgets($file));
+
+	}
+
+
+	echo "Data berhasil disimpan ke file JSON<br>";
+
+	foreach($json as $key => $value) {
+		echo $key . " => " . $value . "<br>";
+	}
+	fclose($file);
+
 ?>
