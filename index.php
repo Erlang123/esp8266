@@ -1,79 +1,131 @@
+<?php
+include('includes/header.php');
+include('db_connect.php');
+include('UIDContainer.php'); // Including UIDContainer.php to retrieve $UIDresult
 
-<?php 
-	include 'db_connection.php';
-	include 'uid_container.php';
-
-	$uid = $_GET['uid'];
-	$apakah_terdaftar_di_database = $_GET['is_on_database'];
-
+// Retrieve UID from POST request or fallback to UIDContainer
+$UIDresult = $_POST['UID'] ?? $UIDresult ?? '';
 ?>
 
-
-
-
-
-
-
-
-
-
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title></title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="utf-8">
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        html {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        td.lf {
+            padding: 12px 15px;
+        }
+    </style>
+    <script>
+        function updateData() {
+            fetch('index.php')
+                .then(response => response.text())
+                .then(data => {
+                    document.documentElement.innerHTML = data;
+                });
+        }
+        setInterval(updateData, 2000); // Update every 2 seconds
+    </script>
 </head>
 <body>
-	<form>
-		<input type="text" name="uid" onchange="cek_apa_data_terdaftar_ke_database('uid.php?cek_id_didatabase='.concat(this.value), this.value)" value="<?php echo $uid;?>">
-	</form>
-	
-	<h5>UID: </h5><span id="uid_output"></span>
-	<h5>Terdaftar di database: </h5><span id="apakah_terdaftar"></span>
+    <h1 class="text-center">RFID CRUD Management</h1>
 
+    <p class="text-center">
+        UID: <?= !empty($UIDresult) ? htmlspecialchars($UIDresult) : 'No UID data available.' ?>
+    </p>
+
+    <div class="d-flex justify-content-center mb-3">
+        <a href="index.php" class="btn btn-primary me-2">Home</a>
+        <a href="create.php" class="btn btn-primary me-2">Add New Entry</a>
+        <a href="view_all.php" class="btn btn-primary me-2">All User Data</a>
+    </div>
+
+    <div id="show_user_data">
+        <table width="652" border="1" bordercolor="#10a0c5" align="center" cellpadding="0" cellspacing="1" bgcolor="#000" style="padding: 2px">
+            <tr>
+                <td height="40" align="center" bgcolor="#10a0c5">
+                    <font color="#FFFFFF"><b>Scanned RFID Data</b></font>
+                </td>
+            </tr>
+            <tr>
+                <td bgcolor="#f9f9f9">
+                    <table width="652" border="0" align="center" cellpadding="5" cellspacing="0">
+                        <tr>
+                            <td class="lf">Card UID</td>
+                            <td><b>:</b></td>
+                            <td><?= htmlspecialchars($UIDresult); ?></td>
+                        </tr>
+                        <?php
+                        if (!empty($UIDresult)) {
+                            $pdo = Database::connect();
+                            $query = "SELECT * FROM rfid_data WHERE card_uid = :card_uid";
+                            $stmt = $pdo->prepare($query);
+                            $stmt->bindParam(':card_uid', $UIDresult, PDO::PARAM_STR);
+                            $stmt->execute();
+                            $matchedData = $stmt->fetch(PDO::FETCH_ASSOC);
+                            Database::disconnect();
+                        ?>
+                        <?php if ($matchedData): ?>
+                            <tr bgcolor="#f2f2f2">
+                                <td class="lf">Name</td>
+                                <td><b>:</b></td>
+                                <td><?= htmlspecialchars($matchedData['name'] ?? 'N/A'); ?></td>
+                            </tr>
+                            <tr>
+                                <td class="lf">Age</td>
+                                <td><b>:</b></td>
+                                <td><?= htmlspecialchars($matchedData['age'] ?? 'N/A'); ?></td>
+                            </tr>
+                            <tr bgcolor="#f2f2f2">
+                                <td class="lf">Designation</td>
+                                <td><b>:</b></td>
+                                <td><?= htmlspecialchars($matchedData['designation'] ?? 'N/A'); ?></td>
+                            </tr>
+                            <tr>
+                                <td class="lf">Location</td>
+                                <td><b>:</b></td>
+                                <td><?= htmlspecialchars($matchedData['location'] ?? 'N/A'); ?></td>
+                            </tr>
+                            <tr bgcolor="#f2f2f2">
+                                <td class="lf">Item Code</td>
+                                <td><b>:</b></td>
+                                <td><?= htmlspecialchars($matchedData['item_code'] ?? 'N/A'); ?></td>
+                            </tr>
+                            <tr>
+                                <td class="lf">Item Name</td>
+                                <td><b>:</b></td>
+                                <td><?= htmlspecialchars($matchedData['item_name'] ?? 'N/A'); ?></td>
+                            </tr>
+                            <tr bgcolor="#f2f2f2">
+                                <td class="lf">Quantity</td>
+                                <td><b>:</b></td>
+                                <td><?= htmlspecialchars($matchedData['quantity'] ?? 'N/A'); ?></td>
+                            </tr>
+                            <tr>
+                                <td class="lf">Unit</td>
+                                <td><b>:</b></td>
+                                <td><?= htmlspecialchars($matchedData['unit'] ?? 'N/A'); ?></td>
+                            </tr>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="3" align="center">No matching data found in database.</td>
+                            </tr>
+                        <?php endif; ?>
+                        <?php } else { ?>
+                        <tr>
+                            <td colspan="3" align="center">No RFID scan detected.</td>
+                        </tr>
+                        <?php } ?>
+                    </table>
+                </td>
+            </tr>
+        </table>
+    </div>
 </body>
-
-
-
-
-<script type="text/javascript">
-	// url = "uid_container.php"; nggak dipakai 
-
-	// setInterval(updateEverySecond, 1000); nggak dipakai
-	
-	async function cek_apa_data_terdaftar_ke_database(url, id) {
-	  let http_request = await fetch(url);
-	  let request_result = await http_request.text();
-
-
-
-	  if(request_result == true){
-	  	// console.log(String(request_result));
-
-
-	  	document.getElementById('uid_output').innerHTML=String(id);
-	  	document.getElementById('apakah_terdaftar').innerHTML=request_result;
-
-	  }
-	  else{
-	  	console.log(String(request_result));
-	  }
-
-
-
-	  // console.log(request_result);
-
-	  // ... lanjutan scriptnya
-	}
-
-
-
-
-</script>
-
-
-
-
-
 </html>
