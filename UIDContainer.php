@@ -1,1 +1,0 @@
-<?php $UIDresult = '439E5214'; ?>
