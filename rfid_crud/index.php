@@ -1,5 +1,5 @@
 <?php
-include('includes/header.php')
+include('includes/header.php');
 include('db_connect.php');
 include('UIDContainer.php'); // Including UIDContainer.php to retrieve $UIDresult
 
